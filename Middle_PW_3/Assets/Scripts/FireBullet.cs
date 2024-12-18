@@ -1,46 +1,55 @@
 using System.IO.Pipes;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
+using UnityEngine.Rendering;
 
 public class FireBullet : MonoBehaviour
 {
     [SerializeField] private GameObject bullet;
 
-    private Transform transformRay;
+    [SerializeField] private LineRenderer lineRenderer;
 
-    private void Start()
-    {
-        transformRay = GetComponent<Transform>();
-    }
+    [SerializeField] private float rayDistance = 10f;
+
+    [SerializeField] private float speedBullet = 20f;
+
+    private RaycastHit hit;    
 
     void Update()
     {
+        RaycastRender();
+
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            //Instantiate(bullet, transform.position, Quaternion.identity);
             Shoot();
-
         }
     }
 
-    void Shoot()
+    /// <summary>
+    /// —оздание луча и его визуализаци€
+    /// </summary>
+    void RaycastRender()
     {
-        RaycastHit hit;
+        Physics.Raycast(transform.position, transform.forward, out hit, rayDistance);
 
-        if (Physics.Raycast(transform.position, transform.forward, out hit))
-        {
-            Debug.Log(hit.transform.name);
+        lineRenderer.enabled = true;
 
-            //Instantiate(bullet, hit.point, Quaternion.LookRotation(hit.normal));
+        lineRenderer.SetPosition(0, transform.position);
 
-            var fire = Instantiate(bullet, transform.position, Quaternion.identity);
+        lineRenderer.SetPosition(1, hit.point);
+    }
 
-            Vector3 swipeDirection = new Vector3(hit.point.x, transform.position.y, hit.point.z);
+    /// <summary>
+    /// ¬ыстрел в направлении луча
+    /// </summary>
+    void Shoot()
+    {      
+        Debug.Log(hit.transform.name);        
 
-            swipeDirection.Normalize();
+        // —оздаем экземпл€р и разворачиваем его в направлении луча
+        var fire = Instantiate(bullet, transform.position, Quaternion.LookRotation(hit.normal));
 
-            fire.GetComponent<Rigidbody>().linearVelocity = swipeDirection * 50;
-            //fire.rigidbody.AddForce(swipeDirection * 5);
-        }
-
+        // ƒвигаем вперед использу€ локальные координаты
+        fire.GetComponent<Rigidbody>().linearVelocity += transform.forward * speedBullet;
     }
 }
